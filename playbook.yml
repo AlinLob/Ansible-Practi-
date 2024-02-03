@@ -8,10 +8,53 @@
         name: git
         state: present
         update_cache: yes
-      become: yes 
+      become: yes
+      tags: git-install
+
     - name: remove git
       ansible.builtin.apt:
         name: git
         state: absent
-      become: yes 
+      become: yes
+      tags: git-remove
+
+    - name: Update package cache
+      ansible.builtin.package:
+       update_cache: true
+      become: yes
+      tags: update_cache
+
+    - name: install nodejs
+      ansible.builtin.apt:
+        update_cache: yes
+        name: nodejs
+        state: present 
+      become: yes
+      tags: nodejs-install
+
+    - name: remove nodejs
+      ansible.builtin.apt:
+        update_cache: yes
+        name: nodejs
+        state: absent
+      become: yes
+      tags: nodejs-remove
+
+
+    - name: Create a new user1
+      ansible.builtin.user:
+        name: [felix]
+        state: present
+      become: yes
+      tags: create_user1
+
+    - name: Create a new user2
+      ansible.builtin.user:
+        name: [suga]
+        state: present
+      become: yes
+      tags: create_user1
       
+
+
+
