@@ -5,6 +5,11 @@
   vars: 
      nginx_port: 8080
      root_dir: /usr/share/nginx/html
+     users:
+      - jaime
+      - sansa
+      - robert
+
 
   tasks:
     - name: install git
@@ -44,21 +49,6 @@
       become: yes
       tags: nodejs-remove
 
-
-    - name: Create a new user1
-      ansible.builtin.user:
-        name: [felix]
-        state: present
-      become: yes
-      tags: create_user1
-
-    - name: Create a new user2
-      ansible.builtin.user:
-        name: [suga]
-        state: present
-      become: yes
-      tags: create_user1
-
     - name: install nginx
       ansible.builtin.apt:
         name: nginx
@@ -83,7 +73,45 @@
         - restart nginx
       become: yes
       tags: ngixconfig-update
-      
+
+    - name: Create users
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ users }}"
+      become: yes
+      tags: create-users
+
+    - name: Create Git config file
+      ansible.builtin.template:
+        src: templates/gitconfig.j2
+        dest: "/home/{{ item }}/.gitconfig"
+      loop: "{{ users }}"
+      become: 
+      tags: create-git-config
+
+    - name: Upload authorized_keys file
+      ansible.builtin.copy:
+        src: "files/authorized_keys"
+        dest: "/home/{{ item }}/.ssh/authorized_keys"
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        mode: 0600
+      loop: "{{ users }}"
+      become: yes
+      tags: uploud-authorized_keys-file
+
+    - name: Set correct permissions for .ssh directory
+      ansible.builtin.file:
+        path: "/home/{{ item }}/.ssh"
+        state: directory
+        owner: "{{ item }}"
+        group: "{{ item }}"
+        mode: 0700
+      loop: "{{ users }}"
+      become: yes
+      tags: set-correct-.ssh
+
   handlers:
     - name: restart nginx
       ansible.builtin.service:
@@ -91,7 +119,3 @@
         state: reloaded
       become: yes 
 
-    - name: update postgresql config
-      ansible.builtin.template:
-        src: templates/postgresql.conf.j2
-        dest: /var/tmp/postgresql.conf
