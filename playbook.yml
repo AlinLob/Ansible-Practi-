@@ -1,10 +1,12 @@
 ---
 
 - hosts: webservers
-  gather_facts: no
+  gather_facts: yes
   vars: 
      nginx_port: 8080
      root_dir: /usr/share/nginx/html
+     dynamic_service_name: "{{ server_name }}"
+     current_date: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
      users:
       - jaime
       - sansa
@@ -111,6 +113,13 @@
       loop: "{{ users }}"
       become: yes
       tags: set-correct-.ssh
+
+    - name: Create HTML template
+      ansible.builtin.template:
+        src: templates/index.html.j2
+        dest: "{{ root_dir }}/index.html"
+      become: yes
+      tags: create-index.html
 
   handlers:
     - name: restart nginx
